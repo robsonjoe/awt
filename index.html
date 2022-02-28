@@ -7,14 +7,87 @@
 	</head>
 	
 	<body>
-		Step 1: Configure IIS
-		Apache listens for requests on TCP/IP port 80. You need to uninstall or disable any program that uses that port. 
-		If you have a Professional or Server version of Windows, you may already have IIS installed. 
-		If you would prefer Apache, either remove IIS as a Windows component or disable its services.
-		<p>
-		New web server conflicts. IIS is using Port 80 and can only be occupied by one service at a time. 
-		Default WAMP uses port 80 so we need to stop the IIS service. Click on the root of the IIS and click stop to stop all services.
-		Remove from startup if you don’t plan on continuing to use it
+<h2 id="manualinstallation">Manual Installation</h2>
+<p>Manual installation offers several benefits:</p>
+<ul><li>Backing up, reinstalling, or moving the web server can be achieved in seconds.</li>
+<li>You have more control over how and when Apache starts.</li>
+<li>You can install Apache anywhere, such as a portable USB drive (useful for client demonstrations).</li>
+</ul><h3 id="step1configureiis">Step 1: Configure IIS</h3>
+<p>Apache listens for requests on TCP/IP port 80. You need to uninstall or disable any program that uses that port. If you have a Professional or Server version of Windows, you may already have IIS installed. If you would prefer Apache, either <a href="http://support.microsoft.com/kb/321141">remove IIS as a Windows component or disable its services</a>.</p>
+<h3 id="step2downloadthefiles">Step 2: Download the files</h3>
+<p>We’re going to use the unofficial Windows binary from <a href="http://www.apachelounge.com/">Apache Lounge</a>. This version has performance and stability improvements over the official Apache distribution, although I’m yet to notice a significant difference. However, it’s provided as a manually installable ZIP file from <a href="http://www.apachelounge.com/download/">www.apachelounge.com/download/</a>.</p>
+<p>You should also <a href="https://www.microsoft.com/en-us/download/details.aspx?id=48145">download and install the Windows C++ runtime from Microsoft.com</a>. You may have this installed already, but there is no harm installing it again.</p>
+<p>As always, remember to virus scan all downloads.</p>
+<h3 id="step3extractthefiles">Step 3: Extract the Files</h3>
+<p>We’ll install Apache in <code>C:/Apache24</code>, so extract the ZIP file to the root of the <code>C:/</code> drive. Apache can be installed anywhere on your system, but you’ll need to change <code>SVROOT</code> configuration to point to your unzipped location — suh as <code>E:/Apache24</code>.</p>
+<h3 id="step4configureapache">Step 4: Configure Apache</h3>
+<p>Apache is configured with the text file <code>conf/httpd.conf</code> contained in the Apache folder. Open it with your favorite text editor.</p>
+<p>Note that all file path settings use a forward slash (<code>/</code>) rather than the Windows backslash. If you installed Apache anywhere other than <code>C:/Apache24</code>, now is a good time to search and replace all references to <code>C:/Apache24</code>.</p>
+<p>There are several lines you should change for your production environment:</p>
+<ul><li>
+<p>Line 60, listen to all requests on port 80:</p>
+<pre class="language-bash"><code class="bash language-bash">Listen *:80
+</code></pre>
+</li>
+<li>
+<p>Line 162, enable mod-rewrite by removing the # (optional, but useful):</p>
+<pre class="language-bash"><code class="bash language-bash">LoadModule rewrite_module modules/mod_rewrite.so
+</code></pre>
+</li>
+<li>
+<p>Line 227, specify the server domain name:</p>
+<pre class="language-bash"><code class="bash language-bash">ServerName localhost:80
+</code></pre>
+</li>
+<li>
+<p>Line 224, allow <code>.htaccess</code> overrides:</p>
+<pre class="language-bash"><code class="bash language-bash">AllowOverride All
+</code></pre>
+</li>
+</ul><h3 id="step4changethewebpagerootoptional">Step 4: Change the Web Page Root (optional)</h3>
+<p>By default, Apache returns files found in its <code>C:/Apache24/htdocs</code> folder. It’s good to use a folder on an another drive or partition to make backups and re-installation easier. For the purposes of this example, we’ll create a folder called <code>D:WebPages</code> and change <code>httpd.conf</code> accordingly:</p>
+<ul><li>
+<p>Line 251, set the root:</p>
+<pre class="language-bash"><code class="bash language-bash">DocumentRoot <span class="token string">"D:/WebPages"</span>
+</code></pre>
+</li>
+<li>
+<p>Line 252:</p>
+<pre class="language-bash"><code class="bash language-bash"><span class="token operator">&#x3C;</span>Directory <span class="token string">"D:/WebPages"</span><span class="token operator">></span>
+</code></pre>
+</li>
+</ul><h3 id="step5testyourinstallation">Step 5: Test your Installation</h3>
+<p>Your Apache configuration can now be tested. Open a command box (Start > Run > <code>cmd</code>) and enter:</p>
+<pre class="language-bash"><code class="bash language-bash"><span class="token comment"># navigate to Apache bin directory</span>
+<span class="token builtin class-name">cd</span> /Apache24/bin
+<span class="token comment"># Test httpd.conf validity</span>
+httpd -t
+</code></pre>
+<p>It should say “Syntax OK”. If not, correct any <code>httpd.conf</code> configuration errors and retest until none appear.</p>
+<h3 id="step6installapacheasawindowsservice">Step 6: install Apache as a Windows service</h3>
+<p>The easiest way to start Apache is to add it as a Windows service. Open a new command prompt as <strong>administrator</strong>, and enter the following:</p>
+<pre class="language-bash"><code class="bash language-bash"><span class="token builtin class-name">cd</span> /Apache24/bin
+httpd -k <span class="token function">install</span>
+</code></pre>
+<p>Open the Control Panel, Administrative Tools, then Services and double-click Apache2.4. Set the Startup type to “Automatic” to ensure Apache starts every time you boot your PC.</p>
+<p>Alternatively, set the Startup type to “Manual” and launch Apache whenever you choose using the command “net start Apache2.4”.</p>
+<h3 id="step7testthewebserver">Step 7: Test the Web server</h3>
+<p>Create a file named <code>index.html</code> in Apache’s web page root (either <code>htdocs</code> or <code>D:\WebPages</code>) and add a little HTML code:</p>
+<pre class="language-markup"><code class="markup language-markup"><span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;</span>html</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;</span>head</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;</span>title</span><span class="token punctuation">></span></span>Testing Apache<span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;/</span>title</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;/</span>head</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;</span>body</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;</span>p</span><span class="token punctuation">></span></span>Apache is working!<span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;/</span>p</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;/</span>body</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&#x3C;/</span>html</span><span class="token punctuation">></span></span>
+</code></pre>
+<p>Ensure Apache has started successfully, open a web browser and enter the address <code>http://localhost/</code>. If all goes well, your test page should appear.</p>
+<p>In general, most problems will be caused by an incorrect setting in the <code>httpd.conf</code> configuration file. Refer to the <a href="http://httpd.apache.org/docs/2.2/">Apache documentation</a> if you require further information.</p>
+<div class="proper-ad-unit">
+          <div id="proper-ad-sitepoint_content_3" class="sitepoint_content"></div>
+        </div><h2 id="wrapup">Wrap Up</h2>
+<p>And that’s it! Here are some other related guides:</p>
 
 	</body>
 </html>
